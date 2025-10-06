@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevOps Learning Roadmap Tracker</title>
+    <script src="roadmapData.js"></script>
+    <script src="main.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .progress-summary {
+            background: #f8f9fa;
+            padding: 20px 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card h3 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .stat-card p {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+
+        .controls {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .filter-btn {
+            padding: 12px 25px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .reset-btn {
+            padding: 12px 25px;
+            border: 2px solid #dc3545;
+            background: white;
+            color: #dc3545;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .reset-btn:hover {
+            background: #dc3545;
+            color: white;
+        }
+
+        .tab-container {
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .tab-buttons {
+            display: flex;
+            padding: 0 30px;
+            background: #f8f9fa;
+        }
+
+        .tab-btn {
+            padding: 15px 25px;
+            border: none;
+            background: transparent;
+            color: #6c757d;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab-btn:hover {
+            color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .tab-btn.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            background: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .progress-log-content {
+            padding: 30px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .log-title {
+            font-size: 1.5em;
+            color: #495057;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .clear-log-btn {
+            padding: 10px 20px;
+            border: 2px solid #f307ff;
+            background: white;
+            color: #f307ff;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .clear-log-btn:hover {
+            background: #b80388;
+            color: white;
+        }
+
+        .log-entry {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            position: relative;
+        }
+
+        .log-entry.completed {
+            border-left-color: #28a745;
+        }
+
+        .log-entry.uncompleted {
+            border-left-color: #dc3545;
+        }
+
+        .log-delete-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #dc3545;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            opacity: 0.7;
+        }
+
+        .log-delete-btn:hover {
+            opacity: 1;
+            transform: scale(1.1);
+            background: #c82333;
+        }
+
+        .log-entry:hover .log-delete-btn {
+            opacity: 1;
+        }
+
+        .log-icon {
+            font-size: 20px;
+            margin-right: 15px;
+            width: 30px;
+            text-align: center;
+        }
+
+        .log-details {
+            flex: 1;
+        }
+
+        .log-title {
+            font-weight: 600;
+            color: #212529;
+            margin-bottom: 5px;
+        }
+
+        .log-action {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-bottom: 3px;
+        }
+
+        .log-timestamp {
+            font-size: 0.8em;
+            color: #adb5bd;
+        }
+
+        .no-logs {
+            text-align: center;
+            color: #6c757d;
+            padding: 40px 20px;
+            font-style: italic;
+        }
+
+        .log-stats {
+            background: #e9ecef;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            text-align: center;
+        }
+
+        .log-stat {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .log-stat-number {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .log-stat-label {
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .phase {
+            margin-bottom: 40px;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .phase-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 25px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        .phase-header:hover {
+            background: linear-gradient(135deg, #5568d3 0%, #653a8b 100%);
+        }
+
+        .phase-header > div:first-child {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .phase-header h2 {
+            font-size: 1.5em;
+        }
+
+        .phase-progress {
+            background: rgba(255, 255, 255, 0.2);
+            height: 8px;
+            border-radius: 4px;
+            margin-top: 10px;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .phase-progress-bar {
+            background: white;
+            height: 100%;
+            transition: width 0.3s;
+            border-radius: 4px;
+            min-width: 0;
+        }
+
+        .phase-content {
+            padding: 25px;
+            display: none;
+        }
+
+        .phase-content.active {
+            display: block;
+        }
+
+        .week {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 5px solid #667eea;
+        }
+
+        .week-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .week-title {
+            font-size: 1.3em;
+            color: #495057;
+            font-weight: 600;
+        }
+
+        .week-time {
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+
+        .topic {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+
+        .topic:hover {
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .topic-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        .checkbox {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #667eea;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            flex-shrink: 0;
+        }
+
+        .checkbox.checked {
+            background: #667eea;
+        }
+
+        .checkbox.checked::after {
+            content: '✓';
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .topic-title {
+            font-size: 1.1em;
+            color: #212529;
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .topic.completed .topic-title {
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+
+        .expand-btn {
+            background: #e9ecef;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            color: #495057;
+            transition: all 0.3s;
+        }
+
+        .expand-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .topic-details {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e9ecef;
+            display: none;
+        }
+
+        .topic-details.active {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .detail-section {
+            margin-bottom: 15px;
+        }
+
+        .detail-section h4 {
+            color: #667eea;
+            margin-bottom: 8px;
+            font-size: 1em;
+        }
+
+        .detail-section p,
+        .detail-section ul {
+            color: #6c757d;
+            line-height: 1.6;
+            font-size: 0.95em;
+        }
+
+        .detail-section ul {
+            padding-left: 20px;
+        }
+
+        .detail-section li {
+            margin-bottom: 5px;
+        }
+
+        .resources {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .resource-link {
+            background: #e7f1ff;
+            color: #0056b3;
+            padding: 8px 15px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 0.9em;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+
+        .resource-link:hover {
+            background: #0056b3;
+            color: white;
+        }
+
+        .youtube-link {
+            background: #ffe0e0;
+            color: #c00;
+        }
+
+        .youtube-link:hover {
+            background: #c00;
+            color: white;
+        }
+
+        .resources-accordion {
+            margin-top: 10px;
+        }
+
+        .resource-accordion {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+
+        .resource-accordion-header {
+            background: #f8f9fa;
+            padding: 12px 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .resource-accordion-header:hover {
+            background: #e9ecef;
+        }
+
+        .resource-type-icon {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .resource-type-label {
+            flex: 1;
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.95em;
+        }
+
+        .resource-toggle-icon {
+            transition: transform 0.3s;
+            color: #6c757d;
+            font-size: 12px;
+        }
+
+        .resource-toggle-icon.rotated {
+            transform: rotate(180deg);
+        }
+
+        .resource-accordion-content {
+            display: none;
+            padding: 15px;
+            background: white;
+        }
+
+        .resource-accordion-content.active {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        .resource-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .resource-list .resource-link {
+            margin: 0;
+            align-self: flex-start;
+        }
+
+        .toggle-icon {
+            transition: transform 0.3s;
+        }
+
+        .toggle-icon.rotated {
+            transform: rotate(180deg);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .filter-btn,
+            .reset-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>DevOps Learning Roadmap</h1>
+            <p>Track your journey to becoming a DevOps engineer - 28 weeks to mastery</p>
+        </div>
+
+        <div class="progress-summary">
+            <div class="stat-card">
+                <h3 id="totalCompleted">0</h3>
+                <p>Topics Completed</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="totalTopics">0</h3>
+                <p>Total Topics</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="overallProgress">0%</h3>
+                <p>Overall Progress</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="currentPhase">-</h3>
+                <p>Current Phase</p>
+            </div>
+        </div>
+
+        <div class="tab-container">
+            <div class="tab-buttons">
+                <button class="tab-btn active" data-tab="roadmap">Roadmap</button>
+                <button class="tab-btn" data-tab="progress-log">Progress Log</button>
+            </div>
+        </div>
+
+        <div class="tab-content active" id="roadmap-tab">
+            <div class="controls">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Search topics, resources, or technologies...">
+                </div>
+                <button class="filter-btn active" data-filter="all">All Topics</button>
+                <button class="filter-btn" data-filter="completed">Completed</button>
+                <button class="filter-btn" data-filter="pending">Pending</button>
+                <button class="reset-btn" id="resetProgress">Reset Progress</button>
+            </div>
+
+            <div class="content" id="roadmapContent"></div>
+        </div>
+
+        <div class="tab-content" id="progress-log-tab">
+            <div class="progress-log-content">
+                <div class="log-header">
+                    <h2 class="log-title">Progress Activity Log</h2>
+                    <button class="clear-log-btn" id="clearProgressLog">Clear Log</button>
+                </div>
+                <div class="log-stats" id="logStats"></div>
+                <div id="progressLogEntries"></div>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

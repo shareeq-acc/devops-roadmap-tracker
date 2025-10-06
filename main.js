@@ -3,6 +3,10 @@ document.addEventListener("DOMContentLoaded", () => {
     let searchTerm = '';
     const progress = {};
     const progressLog = [];
+    
+    // Pagination state for progress log
+    let currentLogPage = 1;
+    const logsPerPage = 10;
 
     // API helper functions
     async function apiRequest(url, options = {}) {
@@ -141,9 +145,9 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             
             // Update phase completion text
-            const phaseHeader = document.querySelector(`#content-${phase.id}`).parentElement.querySelector('.phase-header p');
-            if (phaseHeader) {
-                phaseHeader.textContent = `${phase.duration} • ${phaseCompleted}/${phaseTotal} topics completed`;
+            const phaseStats = document.querySelector(`#content-${phase.id}`).parentElement.querySelector('.phase-stats');
+            if (phaseStats) {
+                phaseStats.textContent = `${phaseCompleted}/${phaseTotal} topics completed`;
             }
         });
     }
@@ -216,12 +220,13 @@ document.addEventListener("DOMContentLoaded", () => {
                     <div class="phase-header" onclick="togglePhase('${phase.id}')">
                         <div>
                             <h2>${phase.title}</h2>
-                            <p style="opacity: 0.9; margin-top: 5px;">${phase.duration} • ${phaseCompleted}/${phaseTotal} topics completed</p>
+                            <div class="phase-duration">${phase.duration}</div>
+                            <div class="phase-stats">${phaseCompleted}/${phaseTotal} topics completed</div>
                             <div class="phase-progress">
                                 <div class="phase-progress-bar" style="width: ${phaseProgress}%"></div>
                             </div>
                         </div>
-                        <span class="toggle-icon" id="toggle-${phase.id}">▼</span>
+                        <i class="fas fa-chevron-down toggle-icon" id="toggle-${phase.id}"></i>
                     </div>
                     <div class="phase-content" id="content-${phase.id}">
                         ${renderWeeks(phase.weeks)}
@@ -239,7 +244,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="week">
                     <div class="week-header">
                         <h3 class="week-title">${week.title}</h3>
-                        <span class="week-time">${week.time}</span>
+                        <span class="week-time">
+                            <i class="fas fa-clock"></i>
+                            ${week.time}
+                        </span>
                     </div>
                     ${renderTopics(week.topics)}
                 </div>
@@ -259,8 +267,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Define type labels and icons
         const typeConfig = {
-            youtube: { label: 'YouTube Videos', icon: '▶️' },
-            links: { label: 'Documentation & Links', icon: '📄' }
+            youtube: { label: 'YouTube Videos', icon: '<i class="fab fa-youtube"></i>' },
+            links: { label: 'Documentation & Links', icon: '<i class="fas fa-link"></i>' }
         };
 
         return Object.entries(resourcesByType).map(([type, typeResources]) => {
@@ -270,13 +278,13 @@ document.addEventListener("DOMContentLoaded", () => {
                     <div class="resource-accordion-header" onclick="toggleResourceAccordion('${topicId}-${type}')">
                         <span class="resource-type-icon">${config.icon}</span>
                         <span class="resource-type-label">${config.label} (${typeResources.length})</span>
-                        <span class="resource-toggle-icon" id="toggle-${topicId}-${type}">▼</span>
+                        <i class="fas fa-chevron-down resource-toggle-icon" id="toggle-${topicId}-${type}"></i>
                     </div>
                     <div class="resource-accordion-content" id="content-${topicId}-${type}">
                         <div class="resource-list">
                             ${typeResources.map(resource => `
                                 <a href="${resource.url}" target="_blank" class="resource-link ${resource.type === 'youtube' ? 'youtube-link' : ''}">
-                                    ${resource.type === 'youtube' ? '▶️' : '📄'} ${resource.title}
+                                    ${resource.type === 'youtube' ? '<i class="fab fa-youtube"></i>' : '<i class="fas fa-external-link-alt"></i>'} ${resource.title}
                                 </a>
                             `).join('')}
                         </div>
@@ -295,32 +303,33 @@ document.addEventListener("DOMContentLoaded", () => {
                             <div class="checkbox ${isCompleted ? 'checked' : ''}" onclick="toggleTopic('${topic.id}')"></div>
                             <span class="topic-title">${topic.title}</span>
                             <button class="expand-btn" onclick="toggleDetails('${topic.id}')">
+                                <i class="fas fa-info-circle"></i>
                                 Details
                             </button>
                         </div>
                         <div class="topic-details" id="details-${topic.id}">
                             <div class="detail-section">
-                                <h4>📖 Description</h4>
+                                <h4><i class="fas fa-book"></i> Description</h4>
                                 <p>${topic.description}</p>
                             </div>
                             <div class="detail-section">
-                                <h4>🎯 What You'll Learn</h4>
+                                <h4><i class="fas fa-target"></i> What You'll Learn</h4>
                                 <ul>
                                     ${topic.whatYouLearn.map(item => `<li>${item}</li>`).join('')}
                                 </ul>
                             </div>
                             <div class="detail-section">
-                                <h4>📚 Resources</h4>
+                                <h4><i class="fas fa-external-link-alt"></i> Resources</h4>
                                 <div class="resources-accordion">
                                     ${renderResourcesByType(topic.resources, topic.id)}
                                 </div>
                             </div>
                             <div class="detail-section">
-                                <h4>🔄 Alternatives</h4>
+                                <h4><i class="fas fa-exchange-alt"></i> Alternatives</h4>
                                 <p>${topic.alternatives}</p>
                             </div>
                             <div class="detail-section">
-                                <h4>💻 Hands-on Practice</h4>
+                                <h4><i class="fas fa-laptop-code"></i> Hands-on Practice</h4>
                                 <p>${topic.handson}</p>
                             </div>
                         </div>
@@ -424,6 +433,7 @@ document.addEventListener("DOMContentLoaded", () => {
             try {
                 await apiRequest('/api/progress-log', { method: 'DELETE' });
                 progressLog.splice(0, progressLog.length);
+                currentLogPage = 1; // Reset pagination
                 renderProgressLog();
                 alert('Progress log cleared successfully!');
             } catch (error) {
@@ -452,7 +462,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Render progress log if switching to that tab
         if (tabName === 'progress-log') {
-            renderProgressLog();
+            renderProgressLog(true); // Reset pagination when switching tabs
         }
     }
 
@@ -469,6 +479,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     progressLog.splice(index, 1);
                 }
                 
+                // Reset pagination if we're on a page that might not have enough entries
+                const totalPages = Math.ceil(progressLog.length / logsPerPage);
+                if (currentLogPage > totalPages && totalPages > 0) {
+                    currentLogPage = totalPages;
+                }
+                
                 renderProgressLog();
             } catch (error) {
                 console.error('Failed to remove log entry:', error);
@@ -477,63 +493,244 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function renderProgressLog() {
+    function renderProgressLog(resetPagination = false) {
+        if (resetPagination) {
+            currentLogPage = 1;
+        }
+
         const logContainer = document.getElementById('progressLogEntries');
         const statsContainer = document.getElementById('logStats');
 
-        // Calculate stats
+        // Calculate enhanced stats
         const totalEntries = progressLog.length;
         const completedEntries = progressLog.filter(entry => entry.action === 'completed').length;
         const uncompletedEntries = progressLog.filter(entry => entry.action === 'uncompleted').length;
         const uniqueDays = [...new Set(progressLog.map(entry => entry.date))].length;
+        
+        // Calculate streak and recent activity
+        const today = new Date().toLocaleDateString('en-PK', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            timeZone: 'Asia/Karachi'
+        });
+        const todayEntries = progressLog.filter(entry => entry.date === today).length;
 
-        // Render stats
+        // Render enhanced stats
         statsContainer.innerHTML = `
                 <div class="log-stat">
+                    <div class="log-stat-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
                     <div class="log-stat-number">${totalEntries}</div>
                     <div class="log-stat-label">Total Actions</div>
                 </div>
                 <div class="log-stat">
+                    <div class="log-stat-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
                     <div class="log-stat-number">${completedEntries}</div>
                     <div class="log-stat-label">Completed</div>
                 </div>
                 <div class="log-stat">
+                    <div class="log-stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
                     <div class="log-stat-number">${uncompletedEntries}</div>
                     <div class="log-stat-label">Uncompleted</div>
                 </div>
                 <div class="log-stat">
+                    <div class="log-stat-icon">
+                        <i class="fas fa-calendar-day"></i>
+                    </div>
                     <div class="log-stat-number">${uniqueDays}</div>
                     <div class="log-stat-label">Active Days</div>
+                </div>
+                <div class="log-stat">
+                    <div class="log-stat-icon">
+                        <i class="fas fa-fire"></i>
+                    </div>
+                    <div class="log-stat-number">${todayEntries}</div>
+                    <div class="log-stat-label">Today's Activity</div>
                 </div>
             `;
 
         if (progressLog.length === 0) {
-            logContainer.innerHTML = '<div class="no-logs">No progress logged yet. Start completing topics to see your progress history!</div>';
+            logContainer.innerHTML = `
+                <div class="no-logs">
+                    <div class="no-logs-icon">
+                        <i class="fas fa-clipboard-list"></i>
+                    </div>
+                    <h3>No Progress Logged Yet</h3>
+                    <p>Start completing topics to see your learning journey unfold here!</p>
+                    <div class="no-logs-tips">
+                        <div class="tip">
+                            <i class="fas fa-lightbulb"></i>
+                            <span>Tip: Check off topics as you complete them to track your progress</span>
+                        </div>
+                    </div>
+                </div>
+            `;
             return;
         }
 
-        // Sort log entries by timestamp (newest first)
+        // Sort entries by timestamp (newest first)
         const sortedLog = [...progressLog].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        
+        // Calculate pagination
+        const totalLogs = sortedLog.length;
+        const totalPages = Math.ceil(totalLogs / logsPerPage);
+        const startIndex = 0;
+        const endIndex = currentLogPage * logsPerPage;
+        const paginatedLogs = sortedLog.slice(startIndex, endIndex);
+        
+        // Group paginated entries by date
+        const groupedEntries = groupLogEntriesByDate(paginatedLogs);
+        
+        // Render log entries
+        const logEntriesHTML = Object.entries(groupedEntries).map(([date, entries]) => `
+            <div class="log-date-group">
+                <div class="log-date-header">
+                    <div class="log-date-info">
+                        <i class="fas fa-calendar"></i>
+                        <span class="log-date">${formatLogDate(date)}</span>
+                        <span class="log-date-count">${entries.length} ${entries.length === 1 ? 'activity' : 'activities'}</span>
+                    </div>
+                </div>
+                <div class="log-entries-list">
+                    ${entries.map(entry => renderLogEntry(entry)).join('')}
+                </div>
+            </div>
+        `).join('');
 
-        logContainer.innerHTML = sortedLog.map(entry => `
-                <div class="log-entry ${entry.action}">
-                    <div class="log-icon">
-                        ${entry.action === 'completed' ? '✅' : '❌'}
+        // Render pagination controls
+        const hasMoreLogs = endIndex < totalLogs;
+        const paginationHTML = hasMoreLogs ? `
+            <div class="log-pagination">
+                <div class="pagination-info">
+                    <span>Showing ${endIndex} of ${totalLogs} entries</span>
+                </div>
+                <button class="load-more-btn" onclick="loadMoreLogs()">
+                    <i class="fas fa-chevron-down"></i>
+                    Load More (${Math.min(logsPerPage, totalLogs - endIndex)} more)
+                </button>
+            </div>
+        ` : (totalLogs > logsPerPage ? `
+            <div class="log-pagination">
+                <div class="pagination-info">
+                    <span>All ${totalLogs} entries loaded</span>
+                </div>
+                <button class="reset-pagination-btn" onclick="resetLogPagination()">
+                    <i class="fas fa-arrow-up"></i>
+                    Show Recent Only
+                </button>
+            </div>
+        ` : '');
+
+        logContainer.innerHTML = logEntriesHTML + paginationHTML;
+    }
+
+    function loadMoreLogs() {
+        currentLogPage++;
+        renderProgressLog();
+    }
+
+    function resetLogPagination() {
+        currentLogPage = 1;
+        renderProgressLog();
+        // Scroll to top of log container
+        document.getElementById('progressLogEntries').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function groupLogEntriesByDate(logs) {
+        const sortedLog = [...logs].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        return sortedLog.reduce((groups, entry) => {
+            const date = entry.date;
+            if (!groups[date]) {
+                groups[date] = [];
+            }
+            groups[date].push(entry);
+            return groups;
+        }, {});
+    }
+
+    function formatLogDate(dateStr) {
+        const today = new Date().toLocaleDateString('en-PK', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            timeZone: 'Asia/Karachi'
+        });
+        
+        const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toLocaleDateString('en-PK', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            timeZone: 'Asia/Karachi'
+        });
+
+        if (dateStr === today) return 'Today';
+        if (dateStr === yesterday) return 'Yesterday';
+        return dateStr;
+    }
+
+    function renderLogEntry(entry) {
+        const isCompleted = entry.action === 'completed';
+        const actionIcon = isCompleted ? 'fa-check-circle' : 'fa-times-circle';
+        const actionColor = isCompleted ? 'success' : 'error';
+        const actionText = isCompleted ? 'Completed' : 'Marked as incomplete';
+        
+        // Get topic category/phase for better context
+        const topicContext = getTopicContext(entry.topicId);
+        
+        return `
+            <div class="log-entry ${entry.action}">
+                <div class="log-entry-icon">
+                    <div class="log-icon-wrapper ${actionColor}">
+                        <i class="fas ${actionIcon}"></i>
                     </div>
-                    <div class="log-details">
-                        <div class="log-title">${entry.topicTitle}</div>
-                        <div class="log-action">
-                            ${entry.action === 'completed' ? 'Marked as completed' : 'Marked as incomplete'}
-                        </div>
-                        <div class="log-timestamp">
-                            ${entry.date} at ${entry.time}
+                </div>
+                <div class="log-entry-content">
+                    <div class="log-entry-header">
+                        <div class="log-entry-title">${entry.topicTitle}</div>
+                        <div class="log-entry-time">
+                            <i class="fas fa-clock"></i>
+                            ${entry.time}
                         </div>
                     </div>
+                    <div class="log-entry-details">
+                        <div class="log-entry-action">
+                            <i class="fas ${isCompleted ? 'fa-arrow-up' : 'fa-arrow-down'}"></i>
+                            ${actionText}
+                        </div>
+                        ${topicContext ? `
+                            <div class="log-entry-context">
+                                <i class="fas fa-folder"></i>
+                                ${topicContext}
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+                <div class="log-entry-actions">
                     <button class="log-delete-btn" onclick="removeLogEntry('${entry.timestamp}')" title="Remove this log entry">
-                        🗑️
+                        <i class="fas fa-trash-alt"></i>
                     </button>
                 </div>
-            `).join('');
+            </div>
+        `;
+    }
+
+    function getTopicContext(topicId) {
+        for (const phase of roadmapData.phases) {
+            for (const week of phase.weeks) {
+                for (const topic of week.topics) {
+                    if (topic.id === topicId) {
+                        return `${phase.title.split(':')[0]} • ${week.title}`;
+                    }
+                }
+            }
+        }
+        return null;
     }
 
 
@@ -542,6 +739,8 @@ document.addEventListener("DOMContentLoaded", () => {
     window.toggleTopic = toggleTopic;
     window.removeLogEntry = removeLogEntry;
     window.toggleResourceAccordion = toggleResourceAccordion;
+    window.loadMoreLogs = loadMoreLogs;
+    window.resetLogPagination = resetLogPagination;
 
     // Initialize the application
     async function initializeApp() {

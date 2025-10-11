@@ -78,6 +78,17 @@ For development with auto-restart:
 npm run dev
 ```
 
+### 🐳 Docker Support
+
+Run with Docker:
+```bash
+# Build the image
+docker build -t devops-tracker:latest .
+
+# Run the container
+docker run --name devops-tracking-server -p 8000:5000 devops-tracker:latest
+```
+
 ## 💻 Usage
 
 ### 🎯 **Getting Started**
@@ -113,19 +124,27 @@ npm run dev
 - **JSON Files** - Simple, portable data format
 - **RESTful API** - Clean data operations
 
+### **Containerization**
+- **Docker** - Application containerization
+- **Node.js Alpine** - Lightweight base image
+
 ## 📁 Project Structure
 
 ```
 devops-roadmap-tracker/
-├── 📄 index.html          # Main application interface
-├── 📄 main.js             # Frontend JavaScript logic
-├── 📄 roadmapData.js      # Learning roadmap content
-├── 📄 server.js           # Express.js server
-├── 📁 data/               # Progress data storage
-│   ├── progress.json      # Topic completion status
-│   └── progress-log.json  # Activity history
-├── 📄 package.json        # Dependencies and scripts
-└── 📄 README.md          # This file
+├── 📁 src/                # Source code directory
+│   ├── 📄 index.html      # Main application interface
+│   ├── 📄 main.js         # Frontend JavaScript logic
+│   ├── 📄 roadmapData.js  # Learning roadmap content
+│   ├── 📄 server.js       # Express.js server
+│   ├── 📄 README.md       # Previous structure reference
+│   └── 📁 data/           # Progress data storage
+│       ├── progress.json      # Topic completion status
+│       └── progress-log.json  # Activity history
+├── 📄 Dockerfile         # Docker containerization
+├── 📄 package.json       # Dependencies and scripts
+├── 📄 package-lock.json  # Dependency lock file
+└── 📄 README.md         # This file
 ```
 
 ## 🔧 API Endpoints

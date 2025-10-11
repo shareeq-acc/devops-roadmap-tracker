@@ -2,7 +2,7 @@
 node_modules/
 
 # Data files (user progress)
-data/
+src/data/
 
 # Logs
 *.log
@@ -19,3 +19,6 @@ Thumbs.db
 # IDE files
 .vscode/
 .idea/
+
+# Docker
+.dockerignore

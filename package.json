@@ -4,8 +4,8 @@
   "description": "DevOps Learning Roadmap Tracker - Express Server",
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "start": "node init && node src/server.js",
+    "dev": "node init && nodemon src/server.js"
   },
   "dependencies": {
     "express": "^4.18.2"
@@ -13,7 +13,12 @@
   "devDependencies": {
     "nodemon": "^3.0.1"
   },
-  "keywords": ["devops", "roadmap", "tracker", "express"],
+  "keywords": [
+    "devops",
+    "roadmap",
+    "tracker",
+    "express"
+  ],
   "author": "",
   "license": "MIT"
 }
